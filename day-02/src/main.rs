@@ -12,6 +12,14 @@ fn main() {
         .count();
 
     println!("Safe reports: {}", safe_reports);
+
+    // allow buffer for the Problem Dampener
+    let safe_reports = reports.iter()
+        .map(|r: &Vec<String>| parse_report(&r))
+        .filter(|r: &Vec<i32>| is_acceptable(&r))
+        .count();
+
+    println!("Acceptable reports: {}", safe_reports);
 }
 
 fn parse_report(report: &Vec<String>) -> Vec<i32> {
@@ -34,6 +42,22 @@ fn is_valid(vec: &Vec<i32>) -> bool {
         let diff = (w[1] - w[0]).abs();
         diff >= 1 && diff <= 3
     })
+}
+
+fn is_acceptable(vec: &Vec<i32>) -> bool {
+    if is_valid(vec) {
+        return true;
+    }
+
+    // loop through each window and slice the current index to see if that's now valid without it
+    for i in 0..vec.len() {
+        let new_vec = [vec[0..i].to_vec(), vec[i+1..].to_vec()].concat();
+        if is_valid(&new_vec) {
+            return true;
+        }
+    }
+
+    false
 }
 
 fn process_reports() -> Vec<Vec<String>> {
