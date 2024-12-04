@@ -10,6 +10,12 @@ fn main() {
     let pattern = Regex::new(r"mul\(\d+,\d+\)").unwrap();
     let matches: Vec<&str> = pattern.find_iter(&corrupted_memory).map(|matched| matched.as_str()).collect();
 
+    let result = process_calculations(matches);
+
+    println!("Result: {}", result);
+}
+
+fn process_calculations(matches: Vec<&str>) -> i32 {
     let mut result: i32 = 0;
 
     for matched in matches {
@@ -25,5 +31,5 @@ fn main() {
         result += values[0] * values[1];
     }
 
-    println!("Result: {}", result);
+    result
 }
