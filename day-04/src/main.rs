@@ -15,6 +15,7 @@ static DIRECTIONS: [(isize, isize); 8] = [
 fn main() {
     let puzzle: Vec<Vec<String>> = load_puzzle();
     let mut found: i32 = 0;
+    let mut found_cross: i32 = 0;
 
     for (i, row) in puzzle.iter().enumerate() {
         for (j, letter) in row.iter().enumerate() {
@@ -26,6 +27,17 @@ fn main() {
     }
 
     println!("Found {} words", found);
+
+    for (i, row) in puzzle.iter().enumerate() {
+        for (j, letter) in row.iter().enumerate() {
+            // only start looking when we find the middle (A)
+            if letter == "A" {
+                found_cross += find_cross(&puzzle, i, j);
+            }
+        }
+    }
+
+    println!("Found {} words", found_cross);
 }
 
 fn find_word(puzzle: &Vec<Vec<String>>, i: usize, j: usize, letter: String) -> i32 {
@@ -68,6 +80,47 @@ fn check_next_position(puzzle: &Vec<Vec<String>>, i: usize, j: usize, letter: St
     }
 
     false
+}
+
+fn find_cross(puzzle: &Vec<Vec<String>>, i: usize, j: usize) -> i32 {
+    let mut found: i32 = 0;
+    let mut values: Vec<&str> = Vec::new();
+
+    // get all the diagonals directions
+    let diagonals = DIRECTIONS.iter()
+        .enumerate()
+        .filter(|(dir, _)| dir % 2 == 0)
+        .map(|(_, value)| value)
+        .collect::<Vec<_>>();
+
+    // check all the diagonals around "A"
+    for (_dir, (di, dj)) in diagonals.iter().enumerate() {
+        let ni = (i as isize + di) as usize;
+        let nj = (j as isize + dj) as usize;
+
+        if ni < puzzle.len() && nj < puzzle[ni].len() && (puzzle[ni][nj] == "M" || puzzle[ni][nj] == "S") {
+            values.push(&puzzle[ni][nj]);
+        } else {
+            values.push("");
+        }
+    }
+
+    // skip if we don't have all the letters
+    if values.iter().filter(|v| !v.is_empty()).count() != 4 {
+        return 0;
+    }
+
+    // check the opposite's aren't the same
+    if values[0] == values[2] || values[1] == values[3] {
+        return 0;
+    }
+
+    // now if we have the right number of letters to make "MAS", we found a word
+    if values.iter().filter(|v| **v == "M").count() == 2 && values.iter().filter(|v| **v == "S").count() == 2 {
+        found += 1;
+    }
+
+    found
 }
 
 fn load_puzzle() -> Vec<Vec<String>> {
